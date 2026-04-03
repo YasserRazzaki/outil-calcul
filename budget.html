@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Budget — Suivi mensuel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #F5F3EE;
+    --surface: #FFFFFF;
+    --surface2: #EDEAE3;
+    --border: rgba(0,0,0,0.10);
+    --border2: rgba(0,0,0,0.18);
+    --text: #1A1917;
+    --text2: #6B6860;
+    --text3: #9C9A93;
+    --green: #1B6B47;
+    --green-bg: #E4F2EB;
+    --green-light: #2E8A5C;
+    --red: #B03030;
+    --red-bg: #FAEAEA;
+    --blue: #1A4F8A;
+    --blue-bg: #E6EEF9;
+    --amber: #7A4F10;
+    --amber-bg: #FDF3E0;
+    --radius: 10px;
+    --radius-lg: 16px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #141413;
+      --surface: #1E1D1B;
+      --surface2: #272623;
+      --border: rgba(255,255,255,0.08);
+      --border2: rgba(255,255,255,0.14);
+      --text: #F0EDE7;
+      --text2: #A09D96;
+      --text3: #6B6860;
+      --green: #4CAF82;
+      --green-bg: #0D2B1C;
+      --green-light: #3D9B6E;
+      --red: #E07070;
+      --red-bg: #2A1010;
+      --blue: #6FA3DC;
+      --blue-bg: #0D1E35;
+      --amber: #DBA84A;
+      --amber-bg: #261A05;
+    }
+  }
+
+  html { font-size: 16px; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0 0 4rem;
+  }
+
+  /* ── HEADER ── */
+  .site-header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 20px;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+  .logo span { color: var(--green); }
+
+  /* ── MONTH NAV ── */
+  .month-nav {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    background: var(--surface2);
+    border-radius: 999px;
+    padding: 4px;
+    border: 1px solid var(--border);
+  }
+  .month-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text2);
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    transition: background 0.15s, color 0.15s;
+  }
+  .month-btn:hover { background: var(--surface); color: var(--text); }
+  .month-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    min-width: 130px;
+    text-align: center;
+  }
+
+  /* ── LAYOUT ── */
+  .container { max-width: 960px; margin: 0 auto; padding: 1.5rem 1rem; }
+
+  /* ── SUMMARY CARDS ── */
+  .summary-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 1.5rem;
+  }
+  @media (max-width: 640px) { .summary-row { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 380px) { .summary-row { grid-template-columns: 1fr; } }
+
+  .kpi {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+  }
+  .kpi-label {
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text3);
+    margin-bottom: 6px;
+  }
+  .kpi-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .kpi-value.g { color: var(--green); }
+  .kpi-value.r { color: var(--red); }
+  .kpi-value.b { color: var(--blue); }
+
+  /* ── PANELS ── */
+  .panels-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  @media (max-width: 620px) { .panels-grid { grid-template-columns: 1fr; } }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  .panel-head {
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+  }
+  .panel-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 15px;
+    color: var(--text);
+  }
+  .panel-hint {
+    font-size: 10px;
+    color: var(--text3);
+    font-style: italic;
+  }
+  .panel-body { padding: 8px; }
+
+  /* ── ROWS ── */
+  .entry-row {
+    display: grid;
+    gap: 6px;
+    align-items: center;
+    padding: 5px 6px;
+    border-radius: 8px;
+    transition: background 0.1s;
+  }
+  .entry-row:hover { background: var(--surface2); }
+  .charges-row { grid-template-columns: 1fr 90px 28px 28px; }
+  .revenus-row  { grid-template-columns: 1fr 90px 28px; }
+
+  .field {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid transparent;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    padding: 3px 4px;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .field:focus { border-bottom-color: var(--green); }
+  .field::placeholder { color: var(--text3); }
+  .field.num { text-align: right; font-family: 'DM Mono', monospace; font-size: 13px; }
+
+  .check-btn {
+    width: 26px; height: 26px;
+    border-radius: 6px;
+    border: 1.5px solid var(--border2);
+    background: transparent;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: transparent;
+    font-size: 13px;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .check-btn.on { background: var(--green); border-color: var(--green); color: #fff; }
+  .check-btn:hover:not(.on) { border-color: var(--green-light); }
+
+  .del-btn {
+    width: 26px; height: 26px;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: var(--text3);
+    font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0;
+    transition: opacity 0.1s, color 0.1s;
+    flex-shrink: 0;
+  }
+  .entry-row:hover .del-btn { opacity: 1; }
+  .del-btn:hover { color: var(--red); }
+
+  .add-row-btn {
+    width: 100%;
+    padding: 8px;
+    margin-top: 4px;
+    background: none;
+    border: 1px dashed var(--border2);
+    border-radius: 8px;
+    color: var(--text3);
+    cursor: pointer;
+    font-size: 12px;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s;
+  }
+  .add-row-btn:hover { background: var(--surface2); color: var(--text); border-color: var(--green); }
+
+  /* ── ÉPARGNE PANEL ── */
+  .epargne-panel {
+    background: var(--blue-bg);
+    border: 1px solid color-mix(in srgb, var(--blue) 25%, transparent);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  .epargne-head {
+    padding: 12px 16px;
+    border-bottom: 1px solid color-mix(in srgb, var(--blue) 20%, transparent);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .epargne-head-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 15px;
+    color: var(--blue);
+  }
+  .epargne-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1px;
+    background: color-mix(in srgb, var(--blue) 15%, transparent);
+  }
+  @media (max-width: 480px) { .epargne-body { grid-template-columns: 1fr; } }
+  .epargne-cell {
+    background: var(--blue-bg);
+    padding: 16px 18px;
+    text-align: center;
+  }
+  .epargne-cell-label {
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: color-mix(in srgb, var(--blue) 70%, transparent);
+    margin-bottom: 8px;
+  }
+  .epargne-cell-val {
+    font-family: 'DM Mono', monospace;
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--blue);
+  }
+  .epargne-input {
+    background: var(--surface);
+    border: 1px solid color-mix(in srgb, var(--blue) 30%, transparent);
+    border-radius: 6px;
+    color: var(--blue);
+    font-family: 'DM Mono', monospace;
+    font-size: 16px;
+    font-weight: 500;
+    padding: 4px 8px;
+    width: 130px;
+    text-align: center;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .epargne-input:focus { border-color: var(--blue); }
+
+  /* ── CHARGES TOTAL BADGE ── */
+  .unpaid-note {
+    font-size: 10px;
+    color: var(--amber);
+    background: var(--amber-bg);
+    border-radius: 4px;
+    padding: 2px 6px;
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+  .entry-row { animation: fadeIn 0.15s ease; }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="logo">mon<span>budget</span></div>
+  <nav class="month-nav">
+    <button class="month-btn" id="prev" title="Mois précédent">&#8592;</button>
+    <span class="month-label" id="month-label">— — —</span>
+    <button class="month-btn" id="next" title="Mois suivant">&#8594;</button>
+  </nav>
+</header>
+
+<main class="container">
+
+  <div class="summary-row">
+    <div class="kpi">
+      <div class="kpi-label">Rentrées</div>
+      <div class="kpi-value g" id="kpi-rentrees">0,00 €</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Sorties payées</div>
+      <div class="kpi-value r" id="kpi-sorties">0,00 €</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Solde dispo</div>
+      <div class="kpi-value" id="kpi-solde">0,00 €</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Épargne totale</div>
+      <div class="kpi-value b" id="kpi-epargne">0,00 €</div>
+    </div>
+  </div>
+
+  <div class="panels-grid">
+
+    <!-- CHARGES -->
+    <div class="panel">
+      <div class="panel-head">
+        <span class="panel-title">Charges</span>
+        <span class="panel-hint" id="unpaid-hint"></span>
+      </div>
+      <div class="panel-body">
+        <div id="charges-list"></div>
+        <button class="add-row-btn" id="add-charge">+ Ajouter une charge</button>
+      </div>
+    </div>
+
+    <!-- RENTRÉES -->
+    <div class="panel">
+      <div class="panel-head">
+        <span class="panel-title">Rentrées d'argent</span>
+      </div>
+      <div class="panel-body">
+        <div id="revenus-list"></div>
+        <button class="add-row-btn" id="add-revenu">+ Ajouter une rentrée</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ÉPARGNE -->
+  <div class="epargne-panel">
+    <div class="epargne-head">
+      <span class="epargne-head-title">Épargne</span>
+    </div>
+    <div class="epargne-body">
+      <div class="epargne-cell">
+        <div class="epargne-cell-label">Reste mois précédant</div>
+        <input class="epargne-input" id="reste-prec" type="number" step="0.01" placeholder="0,00" value="0" />
+      </div>
+      <div class="epargne-cell">
+        <div class="epargne-cell-label">Épargne de ce mois</div>
+        <div class="epargne-cell-val" id="epargne-mois">0,00 €</div>
+      </div>
+      <div class="epargne-cell">
+        <div class="epargne-cell-label">Épargne totale</div>
+        <div class="epargne-cell-val" id="epargne-total">0,00 €</div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+const MONTHS = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+let now = new Date();
+let yr = now.getFullYear(), mo = now.getMonth();
+
+function storageKey() { return `budget_${yr}_${mo}`; }
+
+function loadData() {
+  try {
+    const raw = localStorage.getItem(storageKey());
+    if (raw) return JSON.parse(raw);
+  } catch(e) {}
+  return { charges: [], revenus: [], reste: 0 };
+}
+
+function saveData(d) {
+  try { localStorage.setItem(storageKey(), JSON.stringify(d)); } catch(e) {}
+}
+
+function fmt(n) {
+  return Number(n).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '\u00a0€';
+}
+
+function recalc() {
+  const d = loadData();
+  const totalIn  = d.revenus.reduce((s, r) => s + (parseFloat(r.m) || 0), 0);
+  const totalOut = d.charges.filter(c => c.p).reduce((s, c) => s + (parseFloat(c.m) || 0), 0);
+  const unpaidOut = d.charges.filter(c => !c.p).reduce((s, c) => s + (parseFloat(c.m) || 0), 0);
+  const solde = totalIn - totalOut;
+  const reste = parseFloat(d.reste) || 0;
+  const epargneMois = solde;
+  const epargneTotal = reste + epargneMois;
+
+  document.getElementById('kpi-rentrees').textContent = fmt(totalIn);
+  document.getElementById('kpi-sorties').textContent = fmt(totalOut);
+
+  const soldeEl = document.getElementById('kpi-solde');
+  soldeEl.textContent = fmt(solde);
+  soldeEl.className = 'kpi-value ' + (solde >= 0 ? 'g' : 'r');
+
+  document.getElementById('kpi-epargne').textContent = fmt(epargneTotal);
+  document.getElementById('epargne-mois').textContent = fmt(epargneMois);
+  document.getElementById('epargne-total').textContent = fmt(epargneTotal);
+
+  const hint = document.getElementById('unpaid-hint');
+  if (unpaidOut > 0) {
+    hint.textContent = fmt(unpaidOut) + ' non payées';
+    hint.style.display = '';
+  } else {
+    hint.style.display = 'none';
+  }
+}
+
+function renderCharges() {
+  const d = loadData();
+  const list = document.getElementById('charges-list');
+  list.innerHTML = '';
+  d.charges.forEach((c, i) => {
+    const row = document.createElement('div');
+    row.className = 'entry-row charges-row';
+    row.innerHTML = `
+      <input class="field" type="text" placeholder="Libellé" value="${esc(c.l || '')}" data-i="${i}" data-f="l">
+      <input class="field num" type="number" step="0.01" placeholder="0,00" value="${c.m || ''}" data-i="${i}" data-f="m">
+      <button class="check-btn ${c.p ? 'on' : ''}" data-i="${i}" title="Marquer comme payé">✓</button>
+      <button class="del-btn" data-i="${i}" title="Supprimer">×</button>
+    `;
+    list.appendChild(row);
+  });
+
+  list.querySelectorAll('input').forEach(inp => {
+    inp.addEventListener('input', e => {
+      const d2 = loadData();
+      d2.charges[+e.target.dataset.i][e.target.dataset.f] = e.target.value;
+      saveData(d2);
+      recalc();
+    });
+  });
+  list.querySelectorAll('.check-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const d2 = loadData();
+      const idx = +e.currentTarget.dataset.i;
+      d2.charges[idx].p = !d2.charges[idx].p;
+      saveData(d2);
+      e.currentTarget.classList.toggle('on', d2.charges[idx].p);
+      recalc();
+    });
+  });
+  list.querySelectorAll('.del-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const d2 = loadData();
+      d2.charges.splice(+e.currentTarget.dataset.i, 1);
+      saveData(d2);
+      renderCharges();
+      recalc();
+    });
+  });
+}
+
+function renderRevenus() {
+  const d = loadData();
+  const list = document.getElementById('revenus-list');
+  list.innerHTML = '';
+  d.revenus.forEach((r, i) => {
+    const row = document.createElement('div');
+    row.className = 'entry-row revenus-row';
+    row.innerHTML = `
+      <input class="field" type="text" placeholder="Source" value="${esc(r.l || '')}" data-i="${i}" data-f="l">
+      <input class="field num" type="number" step="0.01" placeholder="0,00" value="${r.m || ''}" data-i="${i}" data-f="m">
+      <button class="del-btn" data-i="${i}" title="Supprimer">×</button>
+    `;
+    list.appendChild(row);
+  });
+
+  list.querySelectorAll('input').forEach(inp => {
+    inp.addEventListener('input', e => {
+      const d2 = loadData();
+      d2.revenus[+e.target.dataset.i][e.target.dataset.f] = e.target.value;
+      saveData(d2);
+      recalc();
+    });
+  });
+  list.querySelectorAll('.del-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const d2 = loadData();
+      d2.revenus.splice(+e.currentTarget.dataset.i, 1);
+      saveData(d2);
+      renderRevenus();
+      recalc();
+    });
+  });
+}
+
+function render() {
+  document.getElementById('month-label').textContent = `${MONTHS[mo]} ${yr}`;
+  const d = loadData();
+  document.getElementById('reste-prec').value = d.reste || 0;
+  renderCharges();
+  renderRevenus();
+  recalc();
+}
+
+function esc(s) {
+  return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+document.getElementById('add-charge').addEventListener('click', () => {
+  const d = loadData(); d.charges.push({ l: '', m: '', p: false }); saveData(d);
+  renderCharges(); recalc();
+});
+document.getElementById('add-revenu').addEventListener('click', () => {
+  const d = loadData(); d.revenus.push({ l: '', m: '' }); saveData(d);
+  renderRevenus(); recalc();
+});
+
+document.getElementById('reste-prec').addEventListener('input', e => {
+  const d = loadData(); d.reste = e.target.value; saveData(d); recalc();
+});
+
+document.getElementById('prev').addEventListener('click', () => {
+  mo--; if (mo < 0) { mo = 11; yr--; } render();
+});
+document.getElementById('next').addEventListener('click', () => {
+  mo++; if (mo > 11) { mo = 0; yr++; } render();
+});
+
+render();
+</script>
+</body>
+</html>
